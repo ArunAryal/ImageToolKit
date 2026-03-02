@@ -1,5 +1,3 @@
-from posixpath import basename
-
 import streamlit as st
 from PIL import Image
 import io
@@ -156,7 +154,7 @@ elif tool == "resize":
             st.download_button(
                 label="⬇️ Download Resized Image",
                 data=buffer,
-                file_name=f"resized_{basename}.png",
+                file_name=f"resized_{base_name}.png",
                 mime="image/png",
                 type="primary"
             )
