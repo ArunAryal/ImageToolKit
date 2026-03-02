@@ -1,3 +1,4 @@
+from cv2 import resize
 import streamlit as st
 from PIL import Image
 import io
@@ -90,6 +91,13 @@ elif tool=="compress":
     if require_image():
         st.image(st.session_state["image"],caption="Original Image",use_container_width=True)
         st.info("🚧 Compress tool coming next!")
+
+elif tool == "resize":
+    st.title("📐 Resize")
+    if require_image():
+        st.image(st.session_state["image"], caption="Original", use_container_width=True)
+        st.info("🚧 Resize tool coming next!")
+
 
 elif tool=="convert":
     st.title("🔁 Convert")
