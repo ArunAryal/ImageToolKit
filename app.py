@@ -1,4 +1,3 @@
-from cv2 import resize
 import streamlit as st
 from PIL import Image
 import io
@@ -114,5 +113,49 @@ elif tool=="filters":
 elif tool=="metadata":
     st.title("🔍 Metadata")
     if require_image():
-        st.image(st.session_state["image"],caption="Original Image",use_container_width=True)
-        st.info("🚧 Metadata tool coming next!")
+        from tools.metadata import get_metadata, classify_metadata,strip_metadata
+
+        image=st.session_state['image']
+        filename=st.session_state['filename']
+        base_name=filename.rsplit(".",1)[0]
+
+        col1,col2=st.columns(2)
+
+        with col1:
+            st.subheader("Preview")
+            st.image(image,use_container_width=True)
+
+        with col2:
+            st.subheader("EXIF Metadata")
+            metadata=get_metadata(image)
+
+            if not metadata:
+                st.success(" ✅ No EXIF metadata found in this image.")
+            else:
+                classified=classify_metadata(metadata)
+                sensitive=classified["sensitive"]
+                normal=classified['normal']
+
+                if sensitive:
+                    st.error(f"🚨 {len(sensitive)} sensitive field(s) found:")
+                    for key,value in sensitive.items():
+                        st.error(f"**{key}**: {value}")
+
+                if normal:
+                    with st.expander(f"View {len(normal)} other metadata fields"):
+                        for key,value in normal.items():
+                            st.text(f"{key}:{value}")
+                st.divider()
+                st.warning(f"Total: **{len(metadata)}** metadata fields detected.")
+
+                if st.button("🧹 Strip All Metadata", type="primary"):
+                    clean_buffer=strip_metadata(image)
+                    st.success("✅ Metadata stripped successfully!")
+                    st.download_button(
+                        label="⬇️ Download Clean Image",
+                        data=clean_buffer,
+                        file_name=f"clean_{base_name}.png",
+                        mime='image/png'
+                    )
+
+# elif tool=="grayscale"
