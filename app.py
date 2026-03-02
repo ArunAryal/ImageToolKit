@@ -97,14 +97,14 @@ elif tool == "resize":
     st.title("📐 Resize")
     if require_image():
         from tools.resize import(
-            get_dimentions, resize_by_pixels,resize_by_percentage,
+            get_dimensions, resize_by_pixels,resize_by_percentage,
             resize_by_height,resize_by_width,image_to_buffer
         )
 
         image=st.session_state['image']
         filename=st.session_state['filename']
         base_name=filename.rsplit(".",1)[0]
-        org_w,org_h=get_dimentions(image)
+        org_w,org_h=get_dimensions(image)
 
         col1,col2=st.columns(2)
 
@@ -149,7 +149,7 @@ elif tool == "resize":
             st. divider()
             st.subheader("Preview")
             st.image(resized,use_container_width=True)
-            final_w,final_h =get_dimentions(resized)
+            final_w,final_h =get_dimensions(resized)
             st.caption(f"New size: {final_w} * {final_h} px")
 
             buffer=image_to_buffer(resized,fmt="PNG")

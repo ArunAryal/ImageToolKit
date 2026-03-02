@@ -9,7 +9,7 @@ except ImportError:
     RESAMPLE = Image.LANCZOS
 
 
-def get_dimentions(image:Image.Image)->tuple[int,int]:
+def get_dimensions(image:Image.Image)->tuple[int,int]:
     return image.size
 
 def resize_by_pixels(image:Image.Image,width:int,height:int)->Image.Image:
