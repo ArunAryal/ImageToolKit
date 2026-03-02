@@ -1,3 +1,5 @@
+from posixpath import basename
+
 import streamlit as st
 from PIL import Image
 import io
@@ -94,10 +96,70 @@ elif tool=="compress":
 elif tool == "resize":
     st.title("📐 Resize")
     if require_image():
-        st.image(st.session_state["image"], caption="Original", use_container_width=True)
-        st.info("🚧 Resize tool coming next!")
+        from tools.resize import(
+            get_dimentions, resize_by_pixels,resize_by_percentage,
+            resize_by_height,resize_by_width,image_to_buffer
+        )
 
+        image=st.session_state['image']
+        filename=st.session_state['filename']
+        base_name=filename.rsplit(".",1)[0]
+        org_w,org_h=get_dimentions(image)
 
+        col1,col2=st.columns(2)
+
+        with col1:
+            st.subheader("Original")
+            st.image(image,use_container_width=True)
+            st.caption(f"Current size: {org_w} * {org_h} px")
+        
+        with col2:
+            st.subheader("Resize Options")
+            mode=st.radio(
+                "Resize by",
+                ["Percentage","Exact Pixels","Fixed Width","Fixed Height"],
+                horizontal=True
+            )
+
+            if mode=="Percentage":
+                percent=st.slider("Scale %",min_value=1,max_value=300,value=100,step=1)
+                new_w=int(org_w*percent/100)
+                new_h=int(org_h*percent/100)
+                st.caption(f"Output size:{new_w} * {new_h} px")
+                resized=resize_by_percentage(image,percent)
+
+            elif mode=="Exact Pixels":
+                new_w=st.number_input("Width(px)",min_value=1,value=org_w)
+                new_h=st.number_input("Height (px)",min_value=1,value=org_h)
+                st.caption("⚠️ Aspect ratio not preserved")
+                resized= resize_by_pixels(image,new_w,new_h)
+
+            elif mode == "Fixed Width":
+                new_w = st.number_input("Width (px)", min_value=1, value=org_w)
+                ratio = new_w / org_w
+                st.caption(f"Output size: {new_w} * {int(org_h * ratio)} px (aspect ratio preserved)")
+                resized = resize_by_width(image, new_w)
+
+            elif mode=="Fixed Height":
+                new_h=st.number_input("Height (px)",min_value=1,value=org_h)
+                ratio=new_h/org_h
+                st.caption(f"Output size :{int(org_w * ratio )} * {new_h} px (aspect ratio preserved)")
+                resized=resize_by_height(image,new_h)
+
+            st. divider()
+            st.subheader("Preview")
+            st.image(resized,use_container_width=True)
+            final_w,final_h =get_dimentions(resized)
+            st.caption(f"New size: {final_w} * {final_h} px")
+
+            buffer=image_to_buffer(resized,fmt="PNG")
+            st.download_button(
+                label="⬇️ Download Resized Image",
+                data=buffer,
+                file_name=f"resized_{basename}.png",
+                mime="image/png",
+                type="primary"
+            )
 elif tool=="convert":
     st.title("🔁 Convert")
     if require_image():
