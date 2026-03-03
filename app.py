@@ -150,12 +150,15 @@ elif tool == "resize":
             final_w,final_h =get_dimensions(resized)
             st.caption(f"New size: {final_w} * {final_h} px")
 
-            buffer=image_to_buffer(resized,fmt="PNG")
+            fmt=image.format or "PNG"
+            ext=fmt.lower().replace("jpeg","jpg")
+
+            buffer=image_to_buffer(resized,fmt=fmt)
             st.download_button(
                 label="⬇️ Download Resized Image",
                 data=buffer,
-                file_name=f"resized_{base_name}.png",
-                mime="image/png",
+                file_name=f"resized_{base_name}.{ext}",
+                mime="image/{ext}",
                 type="primary"
             )
 elif tool=="convert":
@@ -218,4 +221,4 @@ elif tool=="metadata":
                         mime='image/png'
                     )
 
-elif tool=="grayscale"
+# elif tool=="grayscale"

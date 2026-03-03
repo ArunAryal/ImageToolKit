@@ -34,6 +34,11 @@ def resize_by_height(image: Image.Image, height: int) -> Image.Image:
     return image.resize((width, height), RESAMPLE)
 
 def image_to_buffer(image: Image.Image, fmt: str = "PNG") -> io.BytesIO:
+    fmt=fmt or image.format or "PNG"
+
+    if fmt.upper() in ("JPEG","JPG") and image.mode=="RGBA":
+        image=image.convert("RGB")
+
     buffer = io.BytesIO()
     image.save(buffer, format=fmt)
     buffer.seek(0)
