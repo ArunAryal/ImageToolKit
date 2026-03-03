@@ -218,4 +218,4 @@ elif tool=="metadata":
                         mime='image/png'
                     )
 
-# elif tool=="grayscale"
+elif tool=="grayscale"
