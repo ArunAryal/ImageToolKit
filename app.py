@@ -1,6 +1,7 @@
 import streamlit as st
 from PIL import Image
 import io
+from utils.helpers import image_to_buffer
 
 # Page config
 st.set_page_config(
@@ -76,8 +77,41 @@ if tool=="home":
 elif tool=="crop":
     st.title("✂️ Crop")
     if require_image():
-        st.image(st.session_state["image"],caption="Original Image",use_container_width=True)
-        st.info("🚧 Crop tool coming next!")
+        from streamlit_cropper import st_cropper
+        from tools.crop import crop_image
+
+        image=st.session_state["image"]
+        filename=st.session_state["filename"]
+        base_name=filename.rsplit(".",1)[0]
+        fmt=image.format or "PNG"
+        ext=fmt.lower().replace("jpeg","jpg")
+
+        col1,col2=st.columns([2,1])
+
+        with col1:
+            st.subheader("Select the Crop Region")
+            cropped=st_cropper(
+                image,
+                realtime_update=True,
+                box_color="red",
+                aspect_ratio=None 
+            )
+
+        with col2:
+            st.subheader("Preview")
+            st.image(cropped,use_container_width=True)
+
+            w,h=cropped.size
+            st.caption(f"Cropped size: {w} * {h} px")
+
+            buffer=image_to_buffer(cropped,fmt=fmt)
+            st.download_button(
+                label="⬇️ Download Cropped Image",
+                data=buffer,
+                file_name=f"cropped_{base_name}.{ext}",
+                mime=f"image/{ext}",
+                type="primary"
+            )
 
 elif tool=="rotate":
     st.title("🔄 Rotate / Flip")
@@ -96,7 +130,7 @@ elif tool == "resize":
     if require_image():
         from tools.resize import(
             get_dimensions, resize_by_pixels,resize_by_percentage,
-            resize_by_height,resize_by_width,image_to_buffer
+            resize_by_height,resize_by_width
         )
 
         image=st.session_state['image']
