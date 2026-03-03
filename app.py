@@ -283,22 +283,126 @@ elif tool == "resize":
 elif tool == "convert":
     st.title("🔁 Convert")
     if require_image():
-        st.image(
-            st.session_state["image"],
-            caption="Original Image",
-            use_container_width=True,
-        )
-        st.info("🚧 Convert tool coming next!")
+        from tools.convert import convert_image, get_format_ext, SUPPORTED_FORMATS
+
+        image     = st.session_state["image"]
+        filename  = st.session_state["filename"]
+        base_name = filename.rsplit(".", 1)[0]
+
+        current_fmt = (image.format or "PNG").upper()
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader("Original")
+            st.image(image, use_container_width=True)
+            st.caption(f"Current format: **{current_fmt}**  |  Mode: **{image.mode}**")
+
+        with col2:
+            st.subheader("Convert To")
+
+            # Exclude current format from options
+            options = [f for f in SUPPORTED_FORMATS if f != current_fmt]
+            target_fmt = st.selectbox("Target Format", options)
+
+            # Warn if converting from RGBA to a format that drops transparency
+            if image.mode == "RGBA" and target_fmt in ("JPEG", "BMP"):
+                st.warning("⚠️ JPEG and BMP don't support transparency. Alpha channel will be removed.")
+
+            st.divider()
+
+            buffer = convert_image(image, target_fmt)
+            ext    = get_format_ext(target_fmt)
+
+            st.success(f"✅ Ready to download as **{target_fmt}**")
+            st.download_button(
+                label=f"⬇️ Download as {target_fmt}",
+                data=buffer,
+                file_name=f"{base_name}.{ext}",
+                mime=f"image/{ext}",
+                type="primary"
+            )
 
 elif tool == "filters":
     st.title("🎨 Filters")
     if require_image():
-        st.image(
-            st.session_state["image"],
-            caption="Original Image",
-            use_container_width=True,
+        from tools.filters import (
+            to_grayscale, to_sepia, invert_colors,
+            adjust_brightness, adjust_contrast,
+            adjust_sharpness, adjust_saturation,
+            apply_blur, apply_edge_detection, apply_sharpen
         )
-        st.info("🚧 Filters tool coming next!")
+
+        image     = st.session_state["image"]
+        filename  = st.session_state["filename"]
+        base_name = filename.rsplit(".", 1)[0]
+        fmt       = image.format or "PNG"
+        ext       = fmt.lower().replace("jpeg", "jpg")
+
+        result = image.copy()
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader("🎨 Color Filters")
+            color_filter = st.radio(
+                "Apply Filter",
+                ["None", "Grayscale", "Sepia", "Invert"],
+                horizontal=True
+            )
+
+            if color_filter == "Grayscale":
+                result = to_grayscale(result)
+            elif color_filter == "Sepia":
+                result = to_sepia(result)
+            elif color_filter == "Invert":
+                result = invert_colors(result)
+
+            st.divider()
+            st.subheader("⚙️ Adjustments")
+            brightness = st.slider("Brightness", 0.0, 2.0, 1.0, step=0.05)
+            contrast   = st.slider("Contrast",   0.0, 2.0, 1.0, step=0.05)
+            saturation = st.slider("Saturation", 0.0, 2.0, 1.0, step=0.05)
+            sharpness  = st.slider("Sharpness",  0.0, 2.0, 1.0, step=0.05)
+
+            if brightness != 1.0:
+                result = adjust_brightness(result, brightness)
+            if contrast != 1.0:
+                result = adjust_contrast(result, contrast)
+            if saturation != 1.0:
+                result = adjust_saturation(result, saturation)
+            if sharpness != 1.0:
+                result = adjust_sharpness(result, sharpness)
+
+            st.divider()
+            st.subheader("🔬 Advanced")
+            advanced = st.radio(
+                "Apply Effect",
+                ["None", "Blur", "Sharpen", "Edge Detection"],
+                horizontal=True
+            )
+
+            if advanced == "Blur":
+                blur_intensity = st.slider("Blur Intensity", 1, 21, 5, step=2)
+                result = apply_blur(result, blur_intensity)
+            elif advanced == "Sharpen":
+                result = apply_sharpen(result)
+            elif advanced == "Edge Detection":
+                result = apply_edge_detection(result)
+
+        with col2:
+            st.subheader("Preview")
+            st.image(result, use_container_width=True)
+            st.divider()
+
+            buffer = image_to_buffer(result, fmt=fmt)
+            st.download_button(
+                label="⬇️ Download Filtered Image",
+                data=buffer,
+                file_name=f"filtered_{base_name}.{ext}",
+                mime=f"image/{ext}",
+                type="primary"
+            )
 
 elif tool == "metadata":
     st.title("🔍 Metadata")
