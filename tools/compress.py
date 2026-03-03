@@ -12,7 +12,7 @@ def quality_from_percent(percent: int) -> int:
 
 
 def compress_image(image: Image.Image, percent: int) -> io.BytesIO:
-    """Compress image at given quality percentage. Always outputs JPEG."""
+    #Compress image at given quality percentage. Always outputs JPEG.
     quality = quality_from_percent(percent)
     rgb = image.convert("RGB")
     buffer = io.BytesIO()
