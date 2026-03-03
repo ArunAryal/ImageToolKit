@@ -29,8 +29,8 @@ def get_metadata(image:Image.Image)-> dict:
 
 #split metadata into sensitive and normal fields
 def classify_metadata(metadata:dict)->dict:
-    sensitive={}
-    normal={}
+    sensitive: dict[str, object] = {}
+    normal: dict[str, object] = {}
     for key,value in metadata.items():
         if key in SENSITIVE_FIELDS:
             sensitive[key]=value
@@ -44,9 +44,10 @@ def strip_metadata(image:Image.Image)-> io.BytesIO:
     new=Image.new(image.mode,image.size)
     new.putdata(data)
 
-    fmt=image.format or "PNG" #fallback if loaded from buffer
+    fmt=(image.format or "PNG").upper() #fallback if loaded from buffer
+    save_fmt="JPEG" if fmt=="JPG" else fmt
 
     buffer=io.BytesIO()
-    new.save(buffer,format=fmt)
+    new.save(buffer,format=save_fmt)
     buffer.seek(0)
     return buffer

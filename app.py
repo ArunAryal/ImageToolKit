@@ -287,10 +287,6 @@ def render_resize() -> None:
             resized = resize_by_height(image, int(new_h))
 
         st.divider()
-        st.subheader("Preview")
-        st.image(resized, use_container_width=True)
-        final_w, final_h = get_dimensions(resized)
-        st.caption(f"New size: {final_w} × {final_h} px")
         render_download_button(
             buffer=image_to_buffer(resized, fmt=fmt),
             filename=f"resized_{base_name}.{ext}",
