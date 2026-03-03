@@ -190,16 +190,70 @@ elif tool == "rotate":
                 type="primary",
             )
 
-
 elif tool == "compress":
     st.title("🗜️ Compress")
     if require_image():
-        st.image(
-            st.session_state["image"],
-            caption="Original Image",
-            use_container_width=True,
+        from tools.compress import (
+            compress_image, get_compressed_size, get_original_size,
+            bytes_to_kb, size_reduction_percent, build_bar
         )
-        st.info("🚧 Compress tool coming next!")
+
+        image     = st.session_state["image"]
+        filename  = st.session_state["filename"]
+        base_name = filename.rsplit(".", 1)[0]
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader("Original")
+            st.image(image, use_container_width=True)
+
+        with col2:
+            st.subheader("Compression Settings")
+
+            quality_percent = st.slider(
+                "Quality %",
+                min_value=10,
+                max_value=100,
+                value=85,
+                step=5,
+                help="100% = original quality. Lower = smaller file, more artifacts."
+            )
+
+            original_size    = get_original_size(image)
+            compressed_size  = get_compressed_size(image, quality_percent)
+            original_kb      = bytes_to_kb(original_size)
+            compressed_kb    = bytes_to_kb(compressed_size)
+            reduction        = size_reduction_percent(original_size, compressed_size)
+
+            st.divider()
+            st.subheader("📊 Size Comparison")
+
+            st.markdown(
+                build_bar("Original",   original_kb,   original_kb, "#4a9eff") +
+                build_bar("Compressed", compressed_kb, original_kb, "#22c55e"),
+                unsafe_allow_html=True
+            )
+
+            st.caption(f"**{reduction}% smaller** — {original_kb} KB → {compressed_kb} KB")
+
+            st.divider()
+
+            if quality_percent >= 80:
+                st.success("✅ High quality — minimal visible difference")
+            elif quality_percent >= 50:
+                st.warning("⚠️ Medium quality — some loss on close inspection")
+            else:
+                st.error("🚨 Low quality — visible compression artifacts")
+
+            download_buffer = compress_image(image, quality_percent)
+            st.download_button(
+                label="⬇️ Download Compressed Image",
+                data=download_buffer,
+                file_name=f"compressed_{base_name}.jpg",
+                mime="image/jpeg",
+                type="primary"
+            )
 
 elif tool == "resize":
     st.title("📐 Resize")
@@ -452,4 +506,3 @@ elif tool == "metadata":
                         mime="image/png",
                     )
 
-# elif tool=="grayscale"
