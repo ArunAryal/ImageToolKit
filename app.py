@@ -1,5 +1,6 @@
 from __future__ import annotations
 import streamlit as st
+import traceback
 from PIL import Image
 
 from utils.helpers import image_to_buffer
@@ -8,6 +9,7 @@ from utils.ui import (
     get_image_context,
     render_download_button,
     require_image,
+    render_tool_error
 )
 from tools.compress import (
     compress_image,
@@ -39,8 +41,7 @@ from tools.resize import (
 )
 from tools.rotate import flip_horizontal, flip_vertical, rotate_image
 
-#Page config 
-
+# Page config 
 st.set_page_config(
     page_title="Image Toolkit",
     page_icon="🖼️",
@@ -48,8 +49,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-#Sidebar 
-
+# Sidebar 
 TOOLS: dict[str, str] = {
     "🏠 Home":        "home",
     "✂️  Crop":        "crop",
@@ -75,14 +75,21 @@ if tool != "home":
     )
     if uploaded_file:
         if st.session_state.get("filename") != uploaded_file.name:
-            # Reset per-image toggle state when a new file is loaded
             st.session_state["flip_horizontal"] = False
             st.session_state["flip_vertical"] = False
-        st.session_state["image"] = Image.open(uploaded_file)
-        st.session_state["filename"] = uploaded_file.name
+            try:
+                img = Image.open(uploaded_file)
+                img.verify()  # catches corrupt / truncated files
+            except Exception:
+                st.sidebar.error("⚠️ Could not open image — file may be corrupt.")
+                with st.sidebar.expander("Show error detail"):
+                    st.sidebar.code(traceback.format_exc(), language="text")
+            else:
+                uploaded_file.seek(0)  # verify() exhausts the file pointer
+                st.session_state["image"] = Image.open(uploaded_file)
+                st.session_state["filename"] = uploaded_file.name
 
-
-#  Tool pages 
+# Tool pages 
 
 def render_home() -> None:
     st.title("Welcome to the Image Toolkit 🖼️")
@@ -444,7 +451,18 @@ def render_metadata() -> None:
             )
 
 
-# Dispatch table 
+# ── Dispatch ───────────────────────────────────────────────────────────────────
+
+_TOOL_LABELS: dict[str, str] = {
+    "home":     "loading the home page",
+    "crop":     "cropping the image",
+    "rotate":   "rotating or flipping the image",
+    "compress": "compressing the image",
+    "resize":   "resizing the image",
+    "convert":  "converting the image",
+    "filters":  "applying filters",
+    "metadata": "reading metadata",
+}
 
 _RENDERERS = {
     "home":     render_home,
@@ -457,4 +475,7 @@ _RENDERERS = {
     "metadata": render_metadata,
 }
 
-_RENDERERS[tool]()
+try:
+    _RENDERERS[tool]()
+except Exception as exc:
+    render_tool_error(exc, context=_TOOL_LABELS[tool])

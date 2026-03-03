@@ -1,6 +1,7 @@
 # Shared Streamlit UI helpers used across tool pages.
 from __future__ import annotations
 import io
+import traceback
 import streamlit as st
 from PIL import Image
 
@@ -23,6 +24,16 @@ def get_image_context() -> tuple[Image.Image, str, str, str]:
     ext = "jpg" if fmt == "JPEG" else fmt.lower()
     return image, base_name, fmt, ext
 
+
+# Render a friendly error banner with expandable exception detail.
+def render_tool_error(exc: Exception, context: str = "") -> None:
+    msg = f"Something went wrong{f' while {context}' if context else ''}."
+    st.error(f"⚠️ {msg}")
+    with st.expander("Show error detail"):
+        st.code(
+            "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)),
+            language="text",
+        )
 
 # Render a primary-styled Streamlit download button.
 def render_download_button(
