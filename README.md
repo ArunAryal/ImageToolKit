@@ -2,8 +2,8 @@
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://imagetoolkit.streamlit.app)
 
+A browser-based image editor built with Streamlit. Run it locally for offline use or access the live demo. No data is stored or shared.
 
- A browser-based image editor built with Streamlit. Run it locally for offline use or access the live demo. No data is stored or shared.
 ---
 
 ## Features
