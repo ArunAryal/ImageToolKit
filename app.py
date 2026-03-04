@@ -62,11 +62,11 @@ TOOLS: dict[str, str] = {
 }
 
 st.sidebar.title("🖼️ Image Toolkit")
-st.sidebar.markdown("Your private, offline-first image editor")
+st.sidebar.markdown("A browser-based image editor — no data stored or shared.")
 selected = st.sidebar.radio("Select a Tool", list(TOOLS.keys()))
 tool = TOOLS[selected]
 st.sidebar.divider()
-st.sidebar.caption("All processing happens locally. Nothing is uploaded anywhere.")
+st.sidebar.caption("Your images are processed in memory and never stored or shared.")
 
 if tool != "home":
     uploaded_file = st.sidebar.file_uploader(
@@ -94,8 +94,8 @@ if tool != "home":
 def render_home() -> None:
     st.title("Welcome to the Image Toolkit 🖼️")
     st.markdown("""
-A **private, browser-based** image editor — no third-party servers, no data collection.
-
+A **browser-based** image editor — no data stored or shared. Clone the repo to run it offline
+                
 ### What you can do
 | Tool | Description |
 |------|-------------|
