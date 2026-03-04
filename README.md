@@ -1,5 +1,8 @@
 # 🖼️ Image Toolkit
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://imagetoolkit.streamlit.app)
+
+
 A private, offline-first image editor built with Streamlit. All processing happens locally — no data is uploaded anywhere.
 
 ---
